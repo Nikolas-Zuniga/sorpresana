@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>¡Feliz Cumple, Ana!</title>
+  <style>
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: linear-gradient(135deg, #ff4d4d 0%, #ffd24d 40%, #7dff7d 60%, #4dd2ff 100%);
+      font-family: Arial, sans-serif;
+      overflow:hidden;
+    }
+
+    .card{
+      width:90%;
+      max-width:900px;
+      background: rgba(255,255,255,0.12);
+      border-radius:18px;
+      padding:26px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      text-align:center;
+      backdrop-filter: blur(4px);
+      position:relative;
+      z-index:10;
+    }
+
+    img.cumple{
+      width:60%;
+      max-width:420px;
+      border:8px solid #fff;
+      border-radius:12px;
+      margin:18px auto;
+      display:block;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+      transform: rotate(-1.8deg);
+    }
+
+    .line{margin:8px 0; padding:6px;}
+    .line1{font-family: 'Comic Sans MS', 'Comic Neue', cursive; font-size:38px; color:#00ffdb; text-shadow:1px 1px 0 #000;}
+    .line2{font-family: Impact, "Haettenschweiler", 'Arial Black', sans-serif; font-size:30px; color:#ff00d9; letter-spacing:1px; transform: rotate(1deg);}
+    .line3{font-family: 'Courier New', Courier, monospace; font-size:22px; color:#ffff00; background: rgba(0,0,0,0.08); display:inline-block; padding:6px 12px; border-radius:8px;}
+    .line4{font-family: Georgia, serif; font-size:20px; color:#00ff00; font-weight:bold;}
+    .line5{font-family: 'Trebuchet MS', sans-serif; font-size:18px; color:#ff8c00; font-style:italic;}
+    .line6{font-family: 'Lucida Console', monospace; font-size:16px; color:#ff0000; text-transform:uppercase;}
+
+    @keyframes wobble {
+      0%{transform: rotate(-2deg) translateY(0)}
+      50%{transform: rotate(3deg) translateY(-6px)}
+      100%{transform: rotate(-2deg) translateY(0)}
+    }
+    .wobble{animation: wobble 3.5s infinite ease-in-out}
+
+    @keyframes blink {
+      0%,49%{opacity:1}
+      50%,100%{opacity:0.12}
+    }
+    .blink{animation: blink 1.6s infinite step-end}
+
+    @media (max-width:520px){
+      .line1{font-size:28px}
+      .line2{font-size:22px}
+      img.cumple{width:86%}
+    }
+
+    /* CANVAS PARA EL VIDEO CON CHROMA */
+    #chromaCanvas{
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 9999;
+      pointer-events:none;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- CANVAS DONDE SE DIBUJA EL VIDEO SIN FONDO -->
+<canvas id="chromaCanvas"></canvas>
+
+<!-- VIDEO ORIGINAL OCULTO -->
+<video id="greenVideo" src="video.mp4" autoplay loop muted playsinline style="display:none"></video>
+
+<div class="card">
+
+    <div class="line line1 wobble">🎉 ¡Feliz cumpleaños, Ana! 🎉</div>
+
+    <img src="Foto.jpg" alt="Foto de cumpleaños" class="cumple" />
+
+    <div class="line line2">De parte de <strong>Niko</strong> y <strong>Gonza</strong> — los que siempre llegan temprano</div>
+
+    <div class="line line3">Perdón por saludarte tarde, estuvimos hasta el cuello con la uni y un drama que haría llorar a cualquiera.</div>
+
+    <div class="line line4">Esperamos que hayas bailado, comido y reído hasta que te duela la panza (en el buen sentido).</div>
+
+    <div class="line line5 blink">Te mandamos un abrazo gigantesco (y algo de culpa por la demora).</div>
+
+    <div class="line line6">Nos vemos cuando vuelvas — y esta vez prometemos aparecer sin excusas raras.</div>
+
+</div>
+
+<script>
+const video = document.getElementById("greenVideo");
+const canvas = document.getElementById("chromaCanvas");
+const ctx = canvas.getContext("2d");
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
+
+video.addEventListener("play", () => {
+
+    function render() {
+        if (!video.paused && !video.ended) {
+            
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            let frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            let data = frame.data;
+
+            for (let i = 0; i < data.length; i += 4) {
+                let r = data[i];
+                let g = data[i + 1];
+                let b = data[i + 2];
+
+                // DETECTAR VERDE CROMA
+                if (g > 120 && g > r + 40 && g > b + 40) {
+                    data[i + 3] = 0;
+                }
+            }
+
+            ctx.putImageData(frame, 0, 0);
+        }
+
+        requestAnimationFrame(render);
+    }
+
+    render();
+});
+</script>
+
+</body>
+</html>
